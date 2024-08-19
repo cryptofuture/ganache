@@ -49,13 +49,13 @@ export class AccessLists {
       const json: AccessList = [];
       for (let i = 0; i < bufferAccessList.length; i++) {
         const data = bufferAccessList[i];
-        const address = Address.toString(Buffer.from(data[0]));
-        const storageKeys: string[] = [];
+        const address = Address.toString(Buffer.from(data[0])) as `0x${string}`;
+        const storageKeys: `0x${string}`[] = [];
         const storageKeysLength = data[1].length;
         slots += storageKeysLength;
         for (let item = 0; item < storageKeysLength; item++) {
           storageKeys.push(
-            Data.toString(Buffer.from(data[1][item]), STORAGE_KEY_LENGTH)
+            Data.toString(Buffer.from(data[1][item]), STORAGE_KEY_LENGTH) as `0x${string}`
           );
         }
         const jsonItem: AccessListItem = {

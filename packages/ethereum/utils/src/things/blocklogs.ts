@@ -87,8 +87,24 @@ export class BlockLogs {
   /**
    * rlpEncode's the blockHash and logs array for db storage
    */
-  public serialize() {
-    return encode(this[_raw]);
+  public serialize(): Buffer {
+  return encode([
+    this[_raw][0], // blockHash
+    this[_raw][1].map(log =>
+      log.map(item => {
+        if (Buffer.isBuffer(item)) {
+          return item;
+        } else if (item instanceof Uint8Array) {
+          return Buffer.from(item);
+        } else if (Array.isArray(item) && item.every(el => el instanceof Uint8Array)) {
+          // Handle arrays of Uint8Array
+          return item.map(el => Buffer.from(el));
+        } else {
+          throw new Error("Unexpected item type in BlockLog.");
+        }
+      })
+    )
+  ]);
   }
 
   /**

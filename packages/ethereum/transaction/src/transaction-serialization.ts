@@ -66,7 +66,7 @@ export function serializeForDb(
     // block it twice for each block save step.
     legacy ? tx.raw : ([tx.type.toBuffer(), ...tx.raw] as any),
     [
-      Buffer.from(tx.from.bytes),
+      Buffer.from(tx.from.toBuffer()),
       tx.hash.toBuffer(),
       blockHash.toBuffer(),
       blockNumber.toBuffer(),

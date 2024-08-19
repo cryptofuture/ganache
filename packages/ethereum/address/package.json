@@ -56,7 +56,7 @@
     "typescript": "5.2.2"
   },
   "dependencies": {
-    "@ethereumjs/util": "9.0.0",
+    "@ethereumjs/util": "9.1.0",
     "@ganache/utils": "0.9.1"
   }
 }

@@ -56,8 +56,8 @@
     "typescript": "5.2.2"
   },
   "dependencies": {
-    "@ethereumjs/common": "4.0.0",
-    "@ethereumjs/util": "9.0.0",
+    "@ethereumjs/common": "4.4.0",
+    "@ethereumjs/util": "9.1.0",
     "@ganache/ethereum-address": "0.9.1",
     "@ganache/ethereum-transaction": "0.9.1",
     "@ganache/ethereum-utils": "0.9.1",

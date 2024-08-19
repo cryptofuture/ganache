@@ -1,7 +1,8 @@
 import {
   RuntimeError,
   RETURN_TYPES,
-  TransactionLog
+  TransactionLog,
+  Log
 } from "@ganache/ethereum-utils";
 import { Data, Quantity, BUFFER_ZERO } from "@ganache/utils";
 import { Transaction } from "./rpc-transaction";
@@ -11,6 +12,14 @@ import type { RunTxResult } from "@ethereumjs/vm";
 import { BaseTransaction } from "./base-transaction";
 import { InternalTransactionReceipt } from "./transaction-receipt";
 import { Address } from "@ganache/ethereum-address";
+
+export const convertEthereumLogToGanacheLog = (log: any): TransactionLog => {
+  return [
+    log.address.toBuffer(),
+    log.topics.map((topic: any) => topic.toBuffer()),
+    Array.isArray(log.data) ? log.data.map((d: any) => d.toBuffer()) : log.data.toBuffer()
+  ];
+};
 
 export const toValidLengthAddress = (address: string, fieldName: string) => {
   const buffer = Data.toBuffer(address);
@@ -104,32 +113,29 @@ export abstract class RuntimeTransaction extends BaseTransaction {
    * @param result -
    * @returns RLP encoded data for use in a transaction trie
    */
-  public fillFromResult(result: RunTxResult, cumulativeGasUsed: bigint) {
-    const vmResult = result.execResult;
-    const execException = vmResult.exceptionError;
-    let status: Buffer;
-    if (execException) {
-      status = BUFFER_ZERO;
-      this.execException = new RuntimeError(
-        this.hash,
-        result,
-        RETURN_TYPES.TRANSACTION_HASH
-      );
-    } else {
-      status = ONE_BUFFER;
-    }
 
-    const receipt = (this.receipt = InternalTransactionReceipt.fromValues(
-      status,
-      Quantity.toBuffer(cumulativeGasUsed),
-      Buffer.from(result.bloom.bitvector),
-      (this.logs = vmResult.logs || ([] as TransactionLog[])),
-      Quantity.toBuffer(result.totalGasSpent),
-      result.createdAddress ? Buffer.from(result.createdAddress.bytes) : null,
-      this.type
-    ));
-    return receipt.serialize(false);
+  public fillFromResult(result: RunTxResult, cumulativeGasUsed: bigint) {
+  const { createdAddress, execResult } = result;
+
+  const logs = (execResult.logs as any[]).map(log => {
+    return convertEthereumLogToGanacheLog(log);
+  });
+
+  const receipt = (this.receipt = InternalTransactionReceipt.fromValues(
+    execResult.exceptionError ? Buffer.from([0]) : Buffer.from([1]), // status
+    Quantity.toBuffer(cumulativeGasUsed),
+    Buffer.from(result.bloom.bitvector),
+    logs, // Use logs as is or with required conversion
+    Quantity.toBuffer(result.totalGasSpent),
+    createdAddress ? Buffer.from(createdAddress.bytes) : null,
+    this.type
+  ));
+
+  return receipt.serialize(false);
   }
+
+
+
 
   public getReceipt(): InternalTransactionReceipt {
     return this.receipt;
